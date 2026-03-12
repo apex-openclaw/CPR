@@ -26,4 +26,4 @@ prompt:
   add_structural_hint: true
 reasoning:
   use_curated_traces: true     # if traces_dir contains DeepSeek traces
-  fallback_style: "template"  # template | label_only
+  fallback_style: "label_only"  # template | label_only

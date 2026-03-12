@@ -1,7 +1,7 @@
 # LlamaFactory configuration for Qwen 3.5 4B SFT on CPR
 stage: sft
-model_name_or_path: Qwen/Qwen2.5-4B-Instruct  # replace with actual Qwen 3.5 4B checkpoint when available
-template: qwen2
+model_name_or_path: Qwen/Qwen3-4B
+template: qwen3
 finetuning_type: lora
 quantization_method: qlora
 output_dir: outputs/qwen35-cpr-lora
@@ -28,7 +28,7 @@ warmup_ratio: 0.03
 logging_steps: 10
 save_strategy: steps
 save_steps: 200
-evaluation_strategy: steps
+eval_strategy: steps
 eval_steps: 200
 report_to:
   - tensorboard
@@ -36,9 +36,9 @@ report_to:
 lora_rank: 64
 lora_alpha: 128
 lora_dropout: 0.05
-modules_to_save: null
+additional_target: null
 
 # 4-bit QLoRA knobs
-bnb_4bit_compute_dtype: bfloat16
-bnb_4bit_quant_type: nf4
-bnb_4bit_use_double_quant: true
+quantization_bit: 4
+quantization_type: nf4
+double_quantization: true

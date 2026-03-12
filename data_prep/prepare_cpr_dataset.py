@@ -280,9 +280,9 @@ def make_dataset(
         assay_name = assay_meta.get(aid, {}).get("name", f"Assay {aid}")
         assay_desc = assay_meta.get(aid, {}).get("description", "")
 
-        for row in labeled.itertuples():
-            inchikey = row.INCHIKEY
-            label = int(getattr(row, aid))
+        for _, row in labeled.iterrows():
+            inchikey = row["INCHIKEY"]
+            label = int(row[aid])
             smiles = csv_ik_to_smiles.get(inchikey)
             feat_idx = feature_lookup["index"].get(inchikey)
             if smiles is None or feat_idx is None:
