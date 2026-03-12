@@ -1,0 +1,20 @@
+stage: evaluate
+model_name_or_path: outputs/qwen35-cpr-lora
+adapter_name_or_path: outputs/qwen35-cpr-lora
+template: qwen2
+finetuning_type: lora
+quantization_method: qlora
+seed: 42
+
+dataset: cpr_test
+dataset_dir: data/prepared
+cutoff_len: 2048
+max_new_tokens: 512
+temperature: 0.0
+top_p: 0.9
+repetition_penalty: 1.1
+do_train: false
+do_eval: false
+do_predict: true
+per_device_eval_batch_size: 2
+output_dir: outputs/qwen35-cpr-lora/preds

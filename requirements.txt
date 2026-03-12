@@ -1,0 +1,6 @@
+llamafactory>=0.6.0
+pyyaml
+pandas
+numpy
+scikit-learn
+tqdm

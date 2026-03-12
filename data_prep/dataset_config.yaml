@@ -1,0 +1,29 @@
+# Edit these paths to point to your local cpg0012 assets.
+data_root: "/data/huadi"
+paths:
+  labels_csv: "{data_root}/cellpainting_data/cpg0012/labels/compound_assay_activity_with_smiles.csv"
+  features_npz: "{data_root}/MFCP/cell_profiler_feature/preprocessed_cdrp_assays_negcon_select.npz"
+  train_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-train.csv"
+  val_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-val.csv"
+  test_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-test.csv"
+  assay_desc_json: "{project_root}/reference/assay_descriptions.json"
+  traces_dir: "{project_root}/reference/traces"  # optional curated responses
+output:
+  dir: "data/prepared"
+  train_file: "train.jsonl"
+  val_file: "val.jsonl"
+  test_file: "test.jsonl"
+  metadata_file: "metadata.csv"
+prompt:
+  top_k_features: 15
+  max_prompt_tokens: 1800
+  include_assays: []          # leave empty to use all assays
+  min_labeled: 20
+  min_pos_ratio: 0.05
+  max_pos_ratio: 0.95
+  per_assay_limit: null
+  template_name: "default"
+  add_structural_hint: true
+reasoning:
+  use_curated_traces: true     # if traces_dir contains DeepSeek traces
+  fallback_style: "template"  # template | label_only
