@@ -20,6 +20,7 @@ from typing import Dict, Iterable, List, Optional
 import numpy as np
 import pandas as pd
 import yaml
+from tqdm import tqdm
 
 PROMPT_TEMPLATE = """You are an expert in drug discovery, medicinal chemistry, and cell biology.
 
@@ -35,7 +36,7 @@ This compound's treatment of cells produced these notable phenotypic changes (z-
 
 ## Bioassay
 Name: {assay_name}
-Description: {assay_description}
+{endpoint_note}Description: {assay_description}
 
 ## Instructions
 Reason step-by-step:
@@ -66,7 +67,8 @@ def parse_args() -> argparse.Namespace:
 @dataclass
 class Paths:
     labels_csv: Path
-    features_npz: Path
+    features_dir: Path
+    plate_well_map: Path
     train_split_csv: Path
     val_split_csv: Path
     test_split_csv: Path
@@ -100,7 +102,8 @@ def resolve_paths(cfg: dict, project_root: Path) -> Paths:
     p = cfg["paths"]
     return Paths(
         labels_csv=_fmt(p["labels_csv"]),
-        features_npz=_fmt(p["features_npz"]),
+        features_dir=_fmt(p["features_dir"]),
+        plate_well_map=_fmt(p["plate_well_map"]),
         train_split_csv=_fmt(p["train_split_csv"]),
         val_split_csv=_fmt(p["val_split_csv"]),
         test_split_csv=_fmt(p["test_split_csv"]),
@@ -133,9 +136,46 @@ def load_assay_metadata(path: Optional[Path]) -> dict:
             "name": entry.get("name") or f"Assay {aid}",
             "description": entry.get("description")
             or entry.get("abstract")
-            or "No public abstract available.",
+            or "",
         }
     return meta
+
+
+def load_plate_features(
+    features_dir: Path, plate_well_map: Path
+) -> tuple[np.ndarray, np.ndarray, dict]:
+    """Load per-plate CSVs and aggregate features per compound (mean across wells).
+
+    Returns (feature_matrix, feature_names, inchikey_to_row_idx).
+    """
+    mapping = pd.read_csv(plate_well_map)
+    plates = mapping["plate_id"].unique()
+
+    chunks: List[pd.DataFrame] = []
+    for plate_id in tqdm(plates, desc="Loading plates"):
+        csv_path = features_dir / str(plate_id) / f"{plate_id}_normalized_feature_select_negcon_all.csv.gz"
+        if not csv_path.exists():
+            continue
+        df = pd.read_csv(csv_path)
+        # Keep only treatment wells that appear in the mapping
+        plate_wells = mapping[mapping["plate_id"] == plate_id][["well", "INCHIKEY"]]
+        df = df.merge(plate_wells, left_on="Metadata_Well", right_on="well", how="inner")
+        # Drop metadata columns, keep only morphological features + INCHIKEY
+        feat_cols = [c for c in df.columns if not c.startswith("Metadata_") and c not in ("well", "INCHIKEY")]
+        chunks.append(df[["INCHIKEY"] + feat_cols])
+
+    print(f"Loaded features from {len(chunks)}/{len(plates)} plates")
+    all_features = pd.concat(chunks, ignore_index=True)
+    feat_cols = [c for c in all_features.columns if c != "INCHIKEY"]
+
+    # Average across all wells/plates per compound
+    grouped = all_features.groupby("INCHIKEY")[feat_cols].mean()
+    feature_names = np.array(grouped.columns.tolist())
+    feature_matrix = grouped.values.astype(np.float32)
+    ik_to_idx = {ik: i for i, ik in enumerate(grouped.index)}
+
+    print(f"Feature matrix: {feature_matrix.shape[0]} compounds x {feature_matrix.shape[1]} features")
+    return feature_matrix, feature_names, ik_to_idx
 
 
 def summarize_features(vector: np.ndarray, names: np.ndarray, top_k: int) -> str:
@@ -178,17 +218,30 @@ def build_template_response(
     )
 
 
+def build_endpoint_note(aid: str) -> str:
+    """Generate a note for assays with multiple activity thresholds (e.g. 600885_1)."""
+    if "_" not in aid:
+        return ""
+    base, suffix = aid.rsplit("_", 1)
+    if not suffix.isdigit():
+        return ""
+    level = int(suffix)
+    return f"Activity threshold: endpoint {level + 1} (stricter activity cutoff than the primary endpoint)\n"
+
+
 def build_prompt(
     smiles: str,
     feature_summary: str,
     assay_name: str,
     assay_description: str,
+    endpoint_note: str = "",
 ) -> str:
     return PROMPT_TEMPLATE.format(
         smiles=smiles,
         feature_summary=feature_summary,
         assay_name=assay_name,
         assay_description=assay_description,
+        endpoint_note=endpoint_note,
     )
 
 
@@ -197,19 +250,28 @@ def select_assays(
     train_inchikeys: set,
     assays: List[str],
     cfg: dict,
+    assay_meta: Optional[dict] = None,
 ) -> List[str]:
     include = cfg.get("include_assays") or []
     if include:
         include = {str(aid) for aid in include}
         return [aid for aid in assays if aid in include]
 
+    require_desc = cfg.get("require_description", False)
+
     train_mask = labels_df["INCHIKEY"].isin(train_inchikeys)
     train_df = labels_df[train_mask]
     eligible: List[str] = []
+    skipped_no_desc = 0
     min_total = cfg.get("min_labeled", 0)
     min_pos = cfg.get("min_pos_ratio", 0.0)
     max_pos = cfg.get("max_pos_ratio", 1.0)
     for aid in assays:
+        if require_desc and assay_meta is not None:
+            meta = assay_meta.get(aid, {})
+            if not meta.get("description") and not meta.get("abstract"):
+                skipped_no_desc += 1
+                continue
         series = train_df[aid]
         labeled = series[series >= 0]
         n_total = len(labeled)
@@ -219,6 +281,8 @@ def select_assays(
         if pos_ratio < min_pos or pos_ratio > max_pos:
             continue
         eligible.append(aid)
+    if skipped_no_desc:
+        print(f"Skipped {skipped_no_desc} assays without descriptions")
     return eligible
 
 
@@ -300,7 +364,8 @@ def make_dataset(
                 instruction = trace_entry["prompt"].strip()
                 output = trace_entry["response"].strip()
             else:
-                instruction = build_prompt(smiles, feature_summary, assay_name, assay_desc)
+                endpoint_note = build_endpoint_note(aid)
+                instruction = build_prompt(smiles, feature_summary, assay_name, assay_desc, endpoint_note)
                 if fallback_style == "label_only":
                     output = f"**PREDICTION: {LABEL_MAP[label]}**"
                 else:
@@ -346,15 +411,14 @@ def main() -> None:
     assay_cols = [c for c in labels_df.columns if c not in ("INCHIKEY", "SMILES")]
     csv_ik_to_smiles = dict(zip(labels_df["INCHIKEY"], labels_df["SMILES"]))
 
-    npz = np.load(paths.features_npz, allow_pickle=True)
-    feature_matrix = npz["X"]
-    feature_names = npz["feature_names"].astype(str)
-    npz_ik_to_idx = {str(ik): idx for idx, ik in enumerate(npz["inchikeys"])}
-    feature_lookup = {"matrix": feature_matrix, "index": npz_ik_to_idx}
+    feature_matrix, feature_names, ik_to_idx = load_plate_features(
+        paths.features_dir, paths.plate_well_map
+    )
+    feature_lookup = {"matrix": feature_matrix, "index": ik_to_idx}
 
     splits = load_splits(paths)
     assay_meta = load_assay_metadata(paths.assay_desc_json)
-    target_assays = select_assays(labels_df, splits["train"].inchikeys, assay_cols, prompt_cfg)
+    target_assays = select_assays(labels_df, splits["train"].inchikeys, assay_cols, prompt_cfg, assay_meta)
     curated_traces = (
         load_curated_traces(paths.traces_dir)
         if reasoning_cfg.get("use_curated_traces", False)

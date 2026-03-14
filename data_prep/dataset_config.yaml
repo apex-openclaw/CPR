@@ -2,7 +2,8 @@
 data_root: "/data/huadi"
 paths:
   labels_csv: "{data_root}/cellpainting_data/cpg0012/labels/compound_assay_activity_with_smiles.csv"
-  features_npz: "{data_root}/MFCP/cell_profiler_feature/preprocessed_cdrp_assays_negcon_select.npz"
+  features_dir: "{data_root}/stil/data/cell_profiler_features/CDRP"
+  plate_well_map: "{data_root}/cellpainting_data/cpg0012/mae_plate_well_inchikey_smiles.csv"
   train_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-train.csv"
   val_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-val.csv"
   test_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-test.csv"
@@ -15,8 +16,8 @@ output:
   test_file: "test.jsonl"
   metadata_file: "metadata.csv"
 prompt:
-  top_k_features: 15
-  max_prompt_tokens: 1800
+  top_k_features: 300
+  max_prompt_tokens: 6000
   include_assays: []          # leave empty to use all assays
   min_labeled: 20
   min_pos_ratio: 0.05
@@ -24,6 +25,7 @@ prompt:
   per_assay_limit: null
   template_name: "default"
   add_structural_hint: true
+  require_description: true
 reasoning:
   use_curated_traces: true     # if traces_dir contains DeepSeek traces
   fallback_style: "label_only"  # template | label_only

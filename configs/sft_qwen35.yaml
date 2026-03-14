@@ -3,14 +3,13 @@ stage: sft
 model_name_or_path: Qwen/Qwen3-4B
 template: qwen3
 finetuning_type: lora
-quantization_method: qlora
 output_dir: outputs/qwen35-cpr-lora
 seed: 42
 
 dataset: cpr_train
 dataset_dir: data/prepared
 eval_dataset: cpr_val
-cutoff_len: 2048
+cutoff_len: 8192
 max_samples: null
 val_size: 0
 
@@ -18,9 +17,9 @@ do_train: true
 do_eval: true
 do_predict: false
 bf16: true
-per_device_train_batch_size: 2
-gradient_accumulation_steps: 16
-per_device_eval_batch_size: 4
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 64
+per_device_eval_batch_size: 1
 learning_rate: 1.0e-4
 num_train_epochs: 3
 lr_scheduler_type: cosine
@@ -31,14 +30,9 @@ save_steps: 200
 eval_strategy: steps
 eval_steps: 200
 report_to:
-  - tensorboard
+  - wandb
 
 lora_rank: 64
 lora_alpha: 128
 lora_dropout: 0.05
 additional_target: null
-
-# 4-bit QLoRA knobs
-quantization_bit: 4
-quantization_type: nf4
-double_quantization: true

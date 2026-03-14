@@ -3,12 +3,11 @@ model_name_or_path: Qwen/Qwen3-4B
 adapter_name_or_path: outputs/qwen35-cpr-lora
 template: qwen3
 finetuning_type: lora
-quantization_method: qlora
 seed: 42
 
 dataset: cpr_test
 dataset_dir: data/prepared
-cutoff_len: 2048
+cutoff_len: 8192
 max_new_tokens: 512
 temperature: 0.0
 top_p: 0.9
@@ -18,8 +17,3 @@ do_eval: false
 do_predict: true
 per_device_eval_batch_size: 2
 output_dir: outputs/qwen35-cpr-lora/preds
-
-# 4-bit QLoRA knobs
-quantization_bit: 4
-quantization_type: nf4
-double_quantization: true

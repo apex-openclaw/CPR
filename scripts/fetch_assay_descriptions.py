@@ -33,10 +33,18 @@ def fetch_single(aid: str) -> dict | None:
     if not summaries:
         return None
     entry = summaries[0]
+    # PubChem returns "Name" (not "AssayName") and Description as a list of strings
+    name = entry.get("Name") or entry.get("AssayName") or ""
+    desc = entry.get("Description", "")
+    if isinstance(desc, list):
+        desc = "\n".join(desc)
+    abstract = entry.get("Abstract", "")
+    if isinstance(abstract, list):
+        abstract = "\n".join(abstract)
     return {
-        "name": entry.get("AssayName", ""),
-        "description": entry.get("Description", ""),
-        "abstract": entry.get("Abstract", ""),
+        "name": name,
+        "description": desc,
+        "abstract": abstract,
     }
 
 
