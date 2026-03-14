@@ -2,7 +2,7 @@
 data_root: "/data/huadi"
 paths:
   labels_csv: "{data_root}/cellpainting_data/cpg0012/labels/compound_assay_activity_with_smiles.csv"
-  features_dir: "{data_root}/stil/data/cell_profiler_features/CDRP"
+  features_dir: "{data_root}/cellpainting_data/cpg0012/cell_profiler_features/CDRP"
   plate_well_map: "{data_root}/cellpainting_data/cpg0012/mae_plate_well_inchikey_smiles.csv"
   train_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-train.csv"
   val_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-val.csv"
