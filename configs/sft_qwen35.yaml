@@ -9,7 +9,7 @@ seed: 42
 dataset: cpr_train
 dataset_dir: data/prepared
 eval_dataset: cpr_val
-cutoff_len: 8192
+cutoff_len: 16384
 max_samples: null
 val_size: 0
 
@@ -17,9 +17,9 @@ do_train: true
 do_eval: true
 do_predict: false
 bf16: true
-per_device_train_batch_size: 1
-gradient_accumulation_steps: 64
-per_device_eval_batch_size: 1
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 16
+per_device_eval_batch_size: 4
 learning_rate: 1.0e-4
 num_train_epochs: 3
 lr_scheduler_type: cosine

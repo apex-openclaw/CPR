@@ -16,8 +16,8 @@ output:
   test_file: "test.jsonl"
   metadata_file: "metadata.csv"
 prompt:
-  top_k_features: 300
-  max_prompt_tokens: 6000
+  top_k_features: 855
+  max_prompt_tokens: 16000
   include_assays: []          # leave empty to use all assays
   min_labeled: 20
   min_pos_ratio: 0.05
