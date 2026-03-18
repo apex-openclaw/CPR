@@ -22,8 +22,8 @@ export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
 
 # Step 1: Run inference
 echo "=== Running inference ==="
-llamafactory-cli predict \
-    --stage evaluate \
+llamafactory-cli train \
+    --stage sft \
     --model_name_or_path Qwen/Qwen3-4B \
     --adapter_name_or_path "$ADAPTER_PATH" \
     --template qwen3 \
@@ -36,6 +36,7 @@ llamafactory-cli predict \
     --temperature 0.0 \
     --top_p 0.9 \
     --repetition_penalty 1.1 \
+    --do_train false \
     --do_predict true \
     --per_device_eval_batch_size 2 \
     --output_dir "$PRED_DIR"
