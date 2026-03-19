@@ -1,12 +1,12 @@
 # Edit these paths to point to your local cpg0012 assets.
-data_root: "/data/huadi"
+data_root: "/mnt/ceph_rbd"
 paths:
   labels_csv: "{data_root}/cellpainting_data/cpg0012/labels/compound_assay_activity_with_smiles.csv"
   features_dir: "{data_root}/cellpainting_data/cpg0012/cell_profiler_features/CDRP"
   plate_well_map: "{data_root}/cellpainting_data/cpg0012/mae_plate_well_inchikey_smiles.csv"
-  train_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-train.csv"
-  val_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-val.csv"
-  test_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-test.csv"
+  train_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/splits/datasplit1-train.csv"
+  val_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/splits/datasplit1-val.csv"
+  test_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/splits/datasplit1-test.csv"
   assay_desc_json: "{project_root}/reference/assay_descriptions.json"
   traces_dir: "{project_root}/reference/traces"  # optional curated responses
 output:
@@ -16,8 +16,8 @@ output:
   test_file: "test.jsonl"
   metadata_file: "metadata.csv"
 prompt:
-  top_k_features: 855
-  max_prompt_tokens: 16000
+  top_k_features: 300
+  max_prompt_tokens: 6000
   include_assays: []          # leave empty to use all assays
   min_labeled: 20
   min_pos_ratio: 0.05

@@ -9,7 +9,7 @@ seed: 42
 dataset: cpr_train
 dataset_dir: data/prepared
 eval_dataset: cpr_val
-cutoff_len: 16384
+cutoff_len: 8192
 max_samples: null
 val_size: 0
 
@@ -36,3 +36,7 @@ lora_rank: 64
 lora_alpha: 128
 lora_dropout: 0.05
 additional_target: null
+
+preprocessing_num_workers: 16
+dataloader_num_workers: 16
+flash_attn: fa2
