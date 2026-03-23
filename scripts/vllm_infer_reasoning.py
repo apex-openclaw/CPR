@@ -17,15 +17,21 @@ from vllm import LLM, SamplingParams
 from vllm.lora.request import LoRARequest
 
 
-def build_prompt(example: dict) -> str:
-    """Build chat prompt from alpaca-format example using Qwen3 template."""
+def build_prompt(example: dict, tokenizer) -> str:
+    """Build chat prompt from alpaca-format example using Qwen3 template with thinking enabled."""
     instruction = example["instruction"]
     inp = example.get("input", "")
     if inp:
         user_msg = f"{instruction}\n{inp}"
     else:
         user_msg = instruction
-    return f"<|im_start|>user\n{user_msg}<|im_end|>\n<|im_start|>assistant\n"
+    messages = [{"role": "user", "content": user_msg}]
+    return tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=True,
+    )
 
 
 def main():
@@ -49,10 +55,10 @@ def main():
             examples.append(json.loads(line))
     print(f"Loaded {len(examples)} examples from {args.dataset}")
 
-    prompts = [build_prompt(ex) for ex in examples]
+    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    prompts = [build_prompt(ex, tokenizer) for ex in examples]
 
     # Pre-filter prompts that exceed context length
-    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
     valid_indices = []
     skipped = 0
     for i, prompt in enumerate(prompts):
