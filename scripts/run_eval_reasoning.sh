@@ -13,7 +13,7 @@ if [ -n "$CHECKPOINT" ]; then
     echo "Evaluating checkpoint: $ADAPTER_PATH"
 else
     ADAPTER_PATH="outputs/qwen35-cpr-lora"
-    PRED_DIR="outputs/qwen35-cpr-lora/preds"
+    PRED_DIR="outputs/qwen35-cpr-lora/preds-reasoning"
     echo "Evaluating final adapter: $ADAPTER_PATH"
 fi
 
@@ -24,13 +24,13 @@ PYTHON=${CPREVAL_PYTHON:-/root/anaconda3/envs/cpreval/bin/python}
 
 # Step 1: Run inference with vLLM (fast batch generation)
 echo "=== Running vLLM inference ==="
-"$PYTHON" scripts/vllm_infer.py \
+"$PYTHON" scripts/vllm_infer_reasoning.py \
     --model Qwen/Qwen3-4B \
     --adapter "$ADAPTER_PATH" \
     --dataset data/prepared/cpr_test.jsonl \
     --output "$PRED_DIR/generated_predictions.jsonl" \
-    --max_new_tokens 512 \
-    --max_model_len 9000
+    --max_new_tokens 4096 \
+    --max_model_len 13000
 
 # Step 2: Evaluate
 echo ""

@@ -4,6 +4,7 @@ reference/traces/
 
 # Model outputs
 outputs/
+nohup/
 
 # Python
 __pycache__/

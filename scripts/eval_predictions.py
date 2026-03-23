@@ -117,8 +117,15 @@ def main():
     f1 = f1_score(y_true, y_pred)
     mcc = matthews_corrcoef(y_true, y_pred)
 
+    # AUROC: use binary predictions as scores (equals balanced_acc when no proba available)
+    try:
+        auroc = roc_auc_score(y_true, y_pred)
+    except ValueError:
+        auroc = float("nan")  # e.g. only one class in y_true
+
     print(f"Accuracy:           {acc:.4f} ({acc*100:.1f}%)")
     print(f"Balanced Accuracy:  {bal_acc:.4f} ({bal_acc*100:.1f}%)")
+    print(f"AUROC:              {auroc:.4f}")
     print(f"F1 (ACTIVE):        {f1:.4f}")
     print(f"MCC:                {mcc:.4f}")
     print()
@@ -147,6 +154,7 @@ def main():
         results = {
             "accuracy": acc,
             "balanced_accuracy": bal_acc,
+            "auroc": auroc,
             "f1_active": f1,
             "mcc": mcc,
             "n_total": len(raw_labels),
