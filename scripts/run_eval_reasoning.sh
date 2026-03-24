@@ -17,7 +17,7 @@ else
     echo "Evaluating final adapter: $ADAPTER_PATH"
 fi
 
-export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-1}
 
 # Use cpreval env python (has vllm + sklearn)
 PYTHON=${CPREVAL_PYTHON:-/root/anaconda3/envs/cpreval/bin/python}
