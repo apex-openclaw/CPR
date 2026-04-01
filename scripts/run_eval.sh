@@ -8,12 +8,12 @@ cd "$PROJECT_ROOT"
 CHECKPOINT=${1:-""}
 
 if [ -n "$CHECKPOINT" ]; then
-    ADAPTER_PATH="outputs/qwen35-cpr-lora/${CHECKPOINT}"
-    PRED_DIR="outputs/qwen35-cpr-lora/preds-${CHECKPOINT}"
+    ADAPTER_PATH="outputs/qwen35-cpr-lora-newrun-nothink/${CHECKPOINT}"
+    PRED_DIR="outputs/qwen35-cpr-lora-newrun-nothink/preds-${CHECKPOINT}"
     echo "Evaluating checkpoint: $ADAPTER_PATH"
 else
-    ADAPTER_PATH="outputs/qwen35-cpr-lora"
-    PRED_DIR="outputs/qwen35-cpr-lora/preds"
+    ADAPTER_PATH="outputs/qwen35-cpr-lora-newrun-nothink"
+    PRED_DIR="outputs/qwen35-cpr-lora-newrun-nothink/preds"
     echo "Evaluating final adapter: $ADAPTER_PATH"
 fi
 

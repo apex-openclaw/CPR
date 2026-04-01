@@ -32,8 +32,12 @@ def extract_label(text: str) -> str | None:
     """Extract ACTIVE/INACTIVE from model output."""
     text = text.strip()
     # Try exact match first
-    if text in ("**PREDICTION: ACTIVE**", "**PREDICTION: INACTIVE**"):
-        return "ACTIVE" if "ACTIVE" in text else "INACTIVE"
+    exact_map = {
+        "**PREDICTION: ACTIVE**": "ACTIVE",
+        "**PREDICTION: INACTIVE**": "INACTIVE",
+    }
+    if text in exact_map:
+        return exact_map[text]
     # Regex fallback for free-form generation
     m = re.search(r"PREDICTION:\s*(ACTIVE|INACTIVE)", text, re.IGNORECASE)
     if m:
