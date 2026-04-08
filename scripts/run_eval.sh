@@ -4,7 +4,6 @@ set -euo pipefail
 PROJECT_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$PROJECT_ROOT"
 
-# Optional: specify checkpoint (e.g., ./scripts/run_eval.sh checkpoint-471)
 CHECKPOINT=${1:-""}
 
 if [ -n "$CHECKPOINT" ]; then
@@ -18,24 +17,37 @@ else
 fi
 
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+PYTHON=${CPREVAL_PYTHON:-python3}
 
-# Use cpreval env python (has vllm + sklearn)
-PYTHON=${CPREVAL_PYTHON:-/root/anaconda3/envs/cpreval/bin/python}
+for TASK in bio mesh moa target; do
+    TEST_FILE="data/prepared/${TASK}_test.jsonl"
+    if [ ! -f "$TEST_FILE" ]; then
+        echo "Skipping $TASK: $TEST_FILE not found"
+        continue
+    fi
 
-# Step 1: Run inference with vLLM (fast batch generation)
-echo "=== Running vLLM inference ==="
-"$PYTHON" scripts/vllm_infer.py \
-    --model Qwen/Qwen3-4B \
-    --adapter "$ADAPTER_PATH" \
-    --dataset data/prepared/cpr_test.jsonl \
-    --output "$PRED_DIR/generated_predictions.jsonl" \
-    --max_new_tokens 512 \
-    --max_model_len 9000
+    echo ""
+    echo "=========================================="
+    echo "Task: $TASK"
+    echo "=========================================="
 
-# Step 2: Evaluate
+    echo "=== Running vLLM inference for $TASK ==="
+    "$PYTHON" scripts/vllm_infer.py \
+        --model Qwen/Qwen3-4B \
+        --adapter "$ADAPTER_PATH" \
+        --dataset "$TEST_FILE" \
+        --output "$PRED_DIR/${TASK}_predictions.jsonl" \
+        --max_new_tokens 512 \
+        --max_model_len 13000
+
+    echo ""
+    echo "=== Running evaluation for $TASK ==="
+    "$PYTHON" scripts/eval_predictions.py \
+        --predictions "$PRED_DIR/${TASK}_predictions.jsonl" \
+        --test_data "$TEST_FILE" \
+        --task_type "$TASK" \
+        --output "$PRED_DIR/${TASK}_eval.json"
+done
+
 echo ""
-echo "=== Running evaluation ==="
-"$PYTHON" scripts/eval_predictions.py \
-    --predictions "$PRED_DIR/generated_predictions.jsonl" \
-    --test_data data/prepared/test.jsonl \
-    --output "$PRED_DIR/eval_results.json"
+echo "All evaluations complete. Results in: $PRED_DIR/"

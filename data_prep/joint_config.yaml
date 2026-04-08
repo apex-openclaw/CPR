@@ -1,0 +1,44 @@
+data_root: "/data/huadi"
+
+paths:
+  features_dir: "{data_root}/cellpainting_data/cpg0012/cell_profiler_features/CDRP"
+  plate_well_map: "{data_root}/cellpainting_data/cpg0012/mae_plate_well_inchikey_smiles.csv"
+  train_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-train.csv"
+  val_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-val.csv"
+  test_split_csv: "{data_root}/cellpainting_data/cpg0012/splits/datasplit1-test.csv"
+  labels_csv: "{data_root}/cellpainting_data/cpg0012/labels/compound_assay_activity_with_smiles.csv"
+  assay_desc_json: "{project_root}/reference/assay_descriptions.json"
+  traces_dir: "{project_root}/reference/traces"
+
+tasks:
+  bioactivity:
+    enabled: true
+  mesh:
+    enabled: true
+    labels_csv: "{data_root}/CP_SemiSupCon/annotations/b36mesh_ohe_matrix.csv"
+  moa:
+    enabled: true
+    labels_csv: "{data_root}/CP_SemiSupCon/annotations/bmoa_ohe_matrix36.csv"
+  target:
+    enabled: true
+    labels_csv: "{data_root}/CP_SemiSupCon/annotations/btarget_ohe_matrix36.csv"
+
+output:
+  dir: "data/prepared"
+
+prompt:
+  top_k_features: 300
+  min_class_support: 5
+  # bioactivity-specific filters
+  min_labeled: 20
+  min_pos_ratio: 0.05
+  max_pos_ratio: 0.95
+  require_description: true
+
+reasoning:
+  use_curated_traces: true
+  fallback_style: "label_only"
+
+split:
+  new_compound_ratios: [0.7, 0.15, 0.15]
+  seed: 42

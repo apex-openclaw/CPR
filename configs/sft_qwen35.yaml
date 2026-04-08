@@ -9,7 +9,7 @@ seed: 42
 dataset: cpr_train
 dataset_dir: data/prepared
 eval_dataset: cpr_val
-cutoff_len: 8192
+cutoff_len: 12288
 max_samples: null
 val_size: 0
 

@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--dataset", type=str, required=True)
     parser.add_argument("--output", type=str, required=True)
     parser.add_argument("--max_new_tokens", type=int, default=512)
-    parser.add_argument("--max_model_len", type=int, default=8192)
+    parser.add_argument("--max_model_len", type=int, default=13000)
     parser.add_argument("--gpu_memory_utilization", type=float, default=0.9)
     args = parser.parse_args()
 
