@@ -3,13 +3,14 @@ stage: sft
 model_name_or_path: Qwen/Qwen3-4B
 template: qwen3_nothink
 finetuning_type: lora
+deepspeed: configs/ds_z2_config.json
 output_dir: outputs/qwen35-cpr-lora-newrun-nothink
 seed: 42
 
 dataset: cpr_train
 dataset_dir: data/prepared
 eval_dataset: cpr_val
-cutoff_len: 8192
+cutoff_len: 14336
 max_samples: null
 val_size: 0
 
@@ -17,8 +18,8 @@ do_train: true
 do_eval: true
 do_predict: false
 bf16: true
-per_device_train_batch_size: 4
-gradient_accumulation_steps: 2
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 1
 per_device_eval_batch_size: 4
 learning_rate: 1.0e-4
 num_train_epochs: 3
@@ -40,3 +41,4 @@ additional_target: null
 preprocessing_num_workers: 16
 dataloader_num_workers: 16
 flash_attn: fa2
+ddp_timeout: 180000000
