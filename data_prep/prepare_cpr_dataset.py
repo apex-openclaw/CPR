@@ -39,15 +39,17 @@ Name: {assay_name}
 {endpoint_note}Description: {assay_description}
 
 ## Instructions
-Reason step-by-step:
-1. What is the molecular structure and likely pharmacological properties?
-2. What do the morphological changes suggest about mechanism of action?
-3. Is this consistent with activity in the described assay?
+Analyze the compound, Cell Painting profile, and bioassay internally. Do not include reasoning in your response.
 
-Then output your final prediction as exactly: **PREDICTION: ACTIVE** or **PREDICTION: INACTIVE**
+Include your final answer exactly as: the final answer is: [active/inactive]
 """
 
 LABEL_MAP = {0: "INACTIVE", 1: "ACTIVE"}
+FINAL_ANSWER_MAP = {0: "inactive", 1: "active"}
+
+
+def format_final_answer(label: int) -> str:
+    return f"the final answer is: {FINAL_ANSWER_MAP[label]}"
 
 
 def parse_args() -> argparse.Namespace:
@@ -180,6 +182,10 @@ def load_plate_features(
 
 def summarize_features(vector: np.ndarray, names: np.ndarray, top_k: int) -> str:
     abs_vals = np.abs(vector)
+    # Non-positive top_k means "use all available features".
+    if top_k <= 0:
+        top_k = len(names)
+    top_k = min(top_k, len(names))
     top_idx = np.argsort(abs_vals)[-top_k:][::-1]
     lines: List[str] = []
     for idx in top_idx:
@@ -214,7 +220,7 @@ def build_template_response(
         f"1. The compound's structure (see SMILES) suggests a specific scaffold under evaluation for {assay_name}.\n"
         f"2. Cell Painting reveals {elevated} elevated and {reduced} reduced features, for example:\n{summary}\n"
         f"3. These phenotypic shifts are {'consistent' if label else 'not consistent'} with the expected response in {assay_name}.\n"
-        f"Therefore I conclude **PREDICTION: {label_text}**"
+        f"{format_final_answer(label)}"
     )
 
 
@@ -367,9 +373,13 @@ def make_dataset(
                 endpoint_note = build_endpoint_note(aid)
                 instruction = build_prompt(smiles, feature_summary, assay_name, assay_desc, endpoint_note)
                 if fallback_style == "label_only":
-                    output = f"**PREDICTION: {LABEL_MAP[label]}**"
+                    output = format_final_answer(label)
                 else:
                     output = build_template_response(assay_name, feature_summary, label)
+
+            # Keep labels maximally separable for token-level objectives.
+            if fallback_style == "label_only":
+                output = format_final_answer(label)
 
             records.append(
                 {

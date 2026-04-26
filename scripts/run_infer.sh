@@ -4,5 +4,7 @@ set -euo pipefail
 PROJECT_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CONFIG=${1:-"$PROJECT_ROOT/configs/infer_qwen35.yaml"}
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+export PATH=/root/anaconda3/envs/CPR13/bin:$PATH
 
-llamafactory-cli train "$CONFIG"
+LLAMAFACTORY_CLI=${LLAMAFACTORY_CLI:-/root/anaconda3/envs/CPR13/bin/llamafactory-cli}
+"$LLAMAFACTORY_CLI" train "$CONFIG"

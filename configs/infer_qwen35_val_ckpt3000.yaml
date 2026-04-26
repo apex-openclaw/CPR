@@ -1,0 +1,25 @@
+# Batch prediction for CPR test set (LlamaFactory train, predict-only)
+# Requires: stage sft + eval_dataset + predict_with_generate (not stage: evaluate)
+stage: sft
+model_name_or_path: Qwen/Qwen3-4B
+adapter_name_or_path: outputs/qwen35-cpr-lora-newrun-nothink/checkpoint-3000
+template: qwen3
+finetuning_type: lora
+seed: 42
+
+eval_dataset: cpr_val
+dataset_dir: data/prepared
+cutoff_len: 8192
+max_new_tokens: 512
+# Transformers rejects temperature=0 unless do_sample=false (greedy decode)
+do_sample: false
+temperature: 0.0
+top_p: 0.9
+repetition_penalty: 1.1
+do_train: false
+do_eval: false
+do_predict: true
+predict_with_generate: true
+per_device_eval_batch_size: 2
+bf16: true
+output_dir: outputs/qwen35-cpr-lora-newrun-nothink/preds-val-checkpoint-3000

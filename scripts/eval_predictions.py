@@ -38,7 +38,11 @@ def extract_label(text: str) -> str | None:
     }
     if text in exact_map:
         return exact_map[text]
-    # Regex fallback for free-form generation
+    # Preferred final-answer format for nothink SFT/RL outputs
+    m = re.search(r"the\s+final\s+answer\s+is:\s*(active|inactive)", text, re.IGNORECASE)
+    if m:
+        return m.group(1).upper()
+    # Regex fallback for older free-form generation
     m = re.search(r"PREDICTION:\s*(ACTIVE|INACTIVE)", text, re.IGNORECASE)
     if m:
         return m.group(1).upper()

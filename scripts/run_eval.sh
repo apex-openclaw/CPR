@@ -8,19 +8,19 @@ cd "$PROJECT_ROOT"
 CHECKPOINT=${1:-""}
 
 if [ -n "$CHECKPOINT" ]; then
-    ADAPTER_PATH="outputs/qwen35-cpr-lora-newrun-nothink/${CHECKPOINT}"
-    PRED_DIR="outputs/qwen35-cpr-lora-newrun-nothink/preds-${CHECKPOINT}"
+    ADAPTER_PATH="outputs/qwen35-cpr-lora-finalanswer-nothink/${CHECKPOINT}"
+    PRED_DIR="outputs/qwen35-cpr-lora-finalanswer-nothink/preds-${CHECKPOINT}"
     echo "Evaluating checkpoint: $ADAPTER_PATH"
 else
-    ADAPTER_PATH="outputs/qwen35-cpr-lora-newrun-nothink"
-    PRED_DIR="outputs/qwen35-cpr-lora-newrun-nothink/preds"
+    ADAPTER_PATH="outputs/qwen35-cpr-lora-finalanswer-nothink"
+    PRED_DIR="outputs/qwen35-cpr-lora-finalanswer-nothink/preds"
     echo "Evaluating final adapter: $ADAPTER_PATH"
 fi
 
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
 
 # Use cpreval env python (has vllm + sklearn)
-PYTHON=${CPREVAL_PYTHON:-/root/anaconda3/envs/cpreval/bin/python}
+PYTHON=${PYTHON:-/root/anaconda3/envs/CPR13/bin/python}
 
 # Step 1: Run inference with vLLM (fast batch generation)
 echo "=== Running vLLM inference ==="

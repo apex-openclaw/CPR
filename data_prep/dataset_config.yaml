@@ -16,7 +16,7 @@ output:
   test_file: "test.jsonl"
   metadata_file: "metadata.csv"
 prompt:
-  top_k_features: 300
+  top_k_features: -1           # <=0 means include all morphological features
   max_prompt_tokens: 6000
   include_assays: []          # leave empty to use all assays
   min_labeled: 20
